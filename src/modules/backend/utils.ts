@@ -131,5 +131,18 @@ export async function detectEmbeddedAPIBaseURL() {
     // ignore auto detection failures
   }
 
+  // dev/preview 同源反代：/version 由本机面板 server 转发到内核。
+  // 能拿到 401 或带 version 字段的 JSON，就说明当前 origin 后面就是内核。
+  try {
+    const res = await fetch('/version');
+    if (res.status === 401) return window.location.origin;
+    if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+      const data: { version?: unknown } = await res.json();
+      if (typeof data.version === 'string') return window.location.origin;
+    }
+  } catch (e) {
+    // ignore auto detection failures
+  }
+
   return null;
 }
