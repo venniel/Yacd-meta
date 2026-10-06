@@ -45,6 +45,7 @@ export function ProxyCardHeader({
   onTest,
   isTesting,
   extraActions,
+  panelId,
 }: {
   name: string;
   type: string;
@@ -56,6 +57,8 @@ export function ProxyCardHeader({
   onTest?: () => void;
   isTesting?: boolean;
   extraActions?: React.ReactNode;
+  /** 折叠面板的 id，供 aria-controls 指过去 */
+  panelId?: string;
 }) {
   const { t } = useTranslation();
   const handleKeyDown = useCallback(
@@ -76,6 +79,8 @@ export function ProxyCardHeader({
       role="button"
       tabIndex={0}
       aria-expanded={isOpen}
+      aria-controls={panelId}
+      aria-label={`${name}, ${t('proxy_group')}, ${type}`}
     >
       <span className={s.name} title={name}>
         {name}
@@ -162,6 +167,7 @@ const AvailabilityBar = memo(function AvailabilityBar({
  */
 export function ProxyCardStatusRow({
   nowName,
+  nowLabel,
   nowColor,
   itemCount,
   allItems,
@@ -169,6 +175,8 @@ export function ProxyCardStatusRow({
   renderDots,
 }: {
   nowName?: string | null;
+  /** 读屏用的当前节点前缀，如“当前使用” */
+  nowLabel?: string;
   nowColor?: string;
   /** 参与圆点渲染的节点数（过滤后） */
   itemCount: number;
@@ -203,7 +211,14 @@ export function ProxyCardStatusRow({
       {nowName ? (
         <span className={s.nowName} title={nowName}>
           <i className={s.nowDot} style={{ background: nowColor }} aria-hidden />
-          {nowName}
+          {nowLabel ? (
+            <>
+              <span className="visually-hidden">{nowLabel}</span>
+              <span aria-hidden="true">{nowName}</span>
+            </>
+          ) : (
+            nowName
+          )}
         </span>
       ) : null}
       <div className={cx(s.dotsSlot, { [s.dotsSlotStart]: !nowName })} ref={dotsSlotRef}>

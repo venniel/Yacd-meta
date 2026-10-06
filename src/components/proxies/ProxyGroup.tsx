@@ -22,9 +22,12 @@ import { getLatencyColor, ProxyCard, ProxyCardHeader, ProxyCardStatusRow } from 
 import s0 from './ProxyCard.module.scss';
 import { ProxyList, ProxyListGroupedByProvider, ProxyListSummaryView } from './ProxyList';
 
-const { memo, useCallback, useMemo } = React;
+const { memo, useCallback, useId, useMemo } = React;
 
-function buildNowChain(proxies: ProxiesMapping, groupName: string): string | null {
+function buildNowChain(
+  proxies: ProxiesMapping,
+  groupName: string,
+): { display: string; aria: string } | null {
   const group = proxies[groupName] as ProxyItem & { now?: string };
   if (!group?.now) return null;
 
@@ -40,7 +43,7 @@ function buildNowChain(proxies: ProxiesMapping, groupName: string): string | nul
     depth++;
   }
 
-  return parts.join(' › ');
+  return { display: parts.join(' › '), aria: parts.join(', ') };
 }
 
 type Props = {
@@ -63,6 +66,7 @@ export const ProxyGroup = memo(function ProxyGroup({
   appConfig,
 }: Props) {
   const { t } = useTranslation();
+  const panelId = useId();
   const group = proxies[name] as ProxyItem & { all?: string[]; now?: string; fixed?: string };
   const { all: allItems = [], type, now, fixed } = group || {};
   // 组名本身命中搜索时，整组节点原样展示，不再逐个过滤
@@ -134,6 +138,7 @@ export const ProxyGroup = memo(function ProxyGroup({
     itemOnTapCallback,
     onTestLatency,
     proxies,
+    groupAriaLabel: t('group_nodes', { name }),
   };
 
   return (
@@ -147,6 +152,7 @@ export const ProxyGroup = memo(function ProxyGroup({
         latencyColor={nowLatencyColor}
         onTest={testLatency}
         isTesting={isTestingLatency}
+        panelId={panelId}
         badges={
           canResumeAutomaticSelection ? (
             // The pin sits inside the header's click-to-collapse row, so both click and key
@@ -177,7 +183,8 @@ export const ProxyGroup = memo(function ProxyGroup({
       />
 
       <ProxyCardStatusRow
-        nowName={nowChain}
+        nowName={nowChain?.display}
+        nowLabel={nowChain ? `${t('current_node')}: ${nowChain.aria}` : undefined}
         nowColor={nowLatencyColor}
         itemCount={all.length}
         allItems={allItems}
@@ -185,7 +192,10 @@ export const ProxyGroup = memo(function ProxyGroup({
         renderDots={() => <ProxyListSummaryView {...listProps} />}
       />
 
-      <Collapsible isOpen={effectiveIsOpen}>
+      <Collapsible
+        isOpen={effectiveIsOpen}
+        id={panelId}
+      >
         {appConfig.proxyGroupByProvider ? (
           <ProxyListGroupedByProvider {...listProps} />
         ) : (

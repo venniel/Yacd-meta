@@ -1,7 +1,7 @@
 import cx from 'clsx';
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { keyCodes } from '~/misc/keycode';
 import { ProxyItem } from '~/store/types';
 
 import s0 from './Proxy.module.scss';
@@ -86,15 +86,6 @@ export const ProxySmall = memo(function ProxySmall({
     isSelectable && onClick && onClick(name);
   }, [name, onClick, isSelectable]);
 
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.keyCode === keyCodes.Enter) {
-        doSelect();
-      }
-    },
-    [doSelect],
-  );
-
   // 当前选中的节点画成空心圆：用单个元素的 inset 阴影描边，
   // 避免再叠一个绝对定位的内圆——两个盒子各自取整会让圆心看起来偏掉
   const dotStyle = now
@@ -102,8 +93,8 @@ export const ProxySmall = memo(function ProxySmall({
     : { background: color };
 
   return (
-    // role 是条件表达式，oxlint 静态分析不出来
-    // oxlint-disable-next-line jsx-a11y/no-static-element-interactions
+    // 该圆点只是折叠态下的视觉摘要，容器已 aria-hidden；保留 onClick 供鼠标使用
+    // oxlint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
     <div
       title={title}
       className={cx(s0.proxySmall, {
@@ -111,8 +102,6 @@ export const ProxySmall = memo(function ProxySmall({
       })}
       style={dotStyle}
       onClick={doSelect}
-      onKeyDown={handleKeyDown}
-      role={isSelectable ? 'menuitem' : ''}
     />
   );
 });
@@ -155,6 +144,7 @@ export const Proxy = memo(function Proxy({
   onClick,
   onTestLatency,
 }: ProxyProps) {
+  const { t } = useTranslation();
   const delay = latency?.failed ? undefined : proxy.history[proxy.history.length - 1]?.delay;
   const latencyNumber =
     typeof latency?.number === 'number'
@@ -169,13 +159,24 @@ export const Proxy = memo(function Proxy({
   );
   const isTestingLatency = Boolean(latency?.testing);
 
+  const latencyAriaLabel = isTestingLatency
+    ? t('latency_testing_aria')
+    : hasLatencyNumber
+      ? t('latency_value', { ms: latencyNumber })
+      : t('latency_none_aria');
+
+  const nodeAriaLabel = [name, latencyAriaLabel, now ? t('current_node') : undefined]
+    .filter(Boolean)
+    .join(', ');
+
   const doSelect = React.useCallback(() => {
     isSelectable && onClick && onClick(name);
   }, [name, onClick, isSelectable]);
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.keyCode === keyCodes.Enter) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
         doSelect();
       }
     },
@@ -198,14 +199,17 @@ export const Proxy = memo(function Proxy({
   const udpLabel = formatUdpType(proxy.udp, proxy.xudp);
 
   return (
-    // role 是条件表达式，oxlint 静态分析不出来
+    // 可选组里的节点用 radio 语义：读屏会播报“已选中/未选中”，并带上当前节点标记；
+    // 不可选组（如 LoadBalance）保持普通容器，只留内部的测速按钮可聚焦
     // oxlint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
-      tabIndex={0}
+      tabIndex={isSelectable ? 0 : undefined}
       className={className}
-      onClick={doSelect}
-      onKeyDown={handleKeyDown}
-      role={isSelectable ? 'menuitem' : ''}
+      onClick={isSelectable ? doSelect : undefined}
+      onKeyDown={isSelectable ? handleKeyDown : undefined}
+      role={isSelectable ? 'radio' : undefined}
+      aria-checked={isSelectable ? Boolean(now) : undefined}
+      aria-label={isSelectable ? nodeAriaLabel : undefined}
     >
       <div className={s0.topRow}>
         <span className={s0.proxyName} title={name}>
@@ -225,6 +229,7 @@ export const Proxy = memo(function Proxy({
           color={color}
           isTesting={isTestingLatency}
           onClick={runLatencyTest}
+          ariaLabel={latencyAriaLabel}
         />
       </div>
     </div>

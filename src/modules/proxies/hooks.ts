@@ -6,6 +6,7 @@ import * as connAPI from '~/api/connections';
 import * as proxiesAPI from '~/api/proxies';
 import i18n from '~/misc/i18n';
 import { readErrorMessage } from '~/misc/request-helper';
+import { announce } from '~/store/announcer';
 import { delayPatchesAtom, proxyFilterText, setDelayPatch } from '~/store/proxies';
 import { useStoreActions } from '~/store/StateProvider';
 import { toast } from '~/store/toast';
@@ -207,6 +208,9 @@ export function useSwitchProxy(apiConfig: ClashAPIConfig, autoCloseOldConns: boo
       toast('error', i18n.t('switch_proxy_failed', { group: groupName, message: err.message }));
     },
     onSuccess: (_data, switchTo) => {
+      announce(
+        i18n.t('announce_switched', { group: switchTo.groupName, name: switchTo.itemName }),
+      );
       if (!autoCloseOldConns) return;
       const data = getData();
       if (data) closePrevConns(apiConfig, data.proxies, switchTo);
@@ -320,6 +324,8 @@ export function useTestProxyLatency(apiConfig: ClashAPIConfig, appConfig: Proxie
       setDelayPatch(name, { number, failed, testing: false });
       if (failed && !options?.silent) {
         toast('error', i18n.t('test_latency_failed', { name, message: message || 'Timeout' }));
+      } else if (!failed && !options?.silent && number !== undefined) {
+        announce(i18n.t('announce_proxy_test', { name, ms: number }));
       }
     },
     [apiConfig, latencyTestUrl, latencyTestTimeout, latencyTestExpectedStatus],
@@ -376,6 +382,8 @@ export function useTestGroupLatency(
           .map((name) => testProxy(name, undefined, { silent: true })),
       );
     },
+    onSuccess: (_data, vars) =>
+      announce(i18n.t('announce_group_test_done', { group: vars.groupName })),
     onMutate: snapshot,
     onSettled: (_data, _err, _vars, before) => refresh(before),
   });
@@ -405,7 +413,13 @@ export function useTestAllLatency(
         await healthcheckProvider(apiConfig, provider.name, providerHealthcheckTimeout);
       }
     },
-    onMutate: snapshot,
+    onSuccess: () => announce(i18n.t('announce_all_test_done')),
+    // 开始和结束都走 live region，按钮本身的名字保持稳定，
+    // 这样对「不重读焦点控件状态变化」的读屏也能听到进行中
+    onMutate: () => {
+      announce(i18n.t('announce_all_test_start'));
+      return snapshot();
+    },
     onSettled: (_data, _err, _vars, before) => refresh(before),
   });
 

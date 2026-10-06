@@ -25,19 +25,22 @@ const variantsCollpapsibleWrap = {
   },
 };
 
-const Collapsible = memo(({ children, isOpen }: { children: React.ReactNode; isOpen: boolean }) => {
-  return (
-    <LazyMotion features={domAnimation}>
-      <m.div
-        initial={isOpen ? 'initialOpen' : 'closed'}
-        animate={isOpen ? 'open' : 'closed'}
-        variants={variantsCollpapsibleWrap}
-        style={{ overflow: 'hidden' }}
-      >
-        {children}
-      </m.div>
-    </LazyMotion>
-  );
-});
+const Collapsible = memo(
+  ({ children, isOpen, id }: { children: React.ReactNode; isOpen: boolean; id?: string }) => {
+    return (
+      <LazyMotion features={domAnimation}>
+        <m.div
+          id={id}
+          initial={isOpen ? 'initialOpen' : 'closed'}
+          animate={isOpen ? 'open' : 'closed'}
+          variants={variantsCollpapsibleWrap}
+          style={{ overflow: 'hidden' }}
+        >
+          {children}
+        </m.div>
+      </LazyMotion>
+    );
+  },
+);
 
 export default Collapsible;

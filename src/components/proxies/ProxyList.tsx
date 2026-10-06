@@ -18,6 +18,8 @@ type ProxyListProps = {
   isSelectable?: boolean;
   itemOnTapCallback?: (x: string) => void;
   show?: boolean;
+  /** 可选节点列表的 radiogroup 可访问名（含组名） */
+  groupAriaLabel?: string;
 };
 
 export function ProxyList({
@@ -29,11 +31,16 @@ export function ProxyList({
   now,
   isSelectable,
   itemOnTapCallback,
+  groupAriaLabel,
 }: ProxyListProps) {
   const proxyNames = all;
 
   return (
-    <div className={cx(s.list, s.detail)}>
+    <div
+      className={cx(s.list, s.detail)}
+      role={isSelectable ? 'radiogroup' : undefined}
+      aria-label={isSelectable ? groupAriaLabel : undefined}
+    >
       {proxyNames.map((proxyName) => {
         const proxy = proxies[proxyName] || {
           name: proxyName,
@@ -70,7 +77,8 @@ export function ProxyListSummaryView({
   itemOnTapCallback,
 }: ProxyListProps) {
   return (
-    <div className={cx(s.list, s.summary)}>
+    // 折叠态的圆点摘要纯视觉，避免读屏逐个念出一排无意义的圆点
+    <div className={cx(s.list, s.summary)} aria-hidden="true">
       {all.map((proxyName) => {
         const proxy = proxies[proxyName] || {
           name: proxyName,
@@ -105,6 +113,7 @@ export function ProxyListGroupedByProvider({
   now,
   isSelectable,
   itemOnTapCallback,
+  groupAriaLabel,
 }: ProxyListProps) {
   const { t } = useTranslation();
   // Group proxy names by their providerName
@@ -119,7 +128,7 @@ export function ProxyListGroupedByProvider({
   }, [all, proxies]);
 
   return (
-    <div>
+    <div role={isSelectable ? 'radiogroup' : undefined} aria-label={isSelectable ? groupAriaLabel : undefined}>
       {groups.map(({ label, names }) => (
         <div key={label} className={s.providerGroup}>
           {label ? (

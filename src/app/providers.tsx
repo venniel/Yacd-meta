@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import * as React from 'react';
 
 import ErrorBoundary from '~/app/ErrorBoundary';
+import { Announcer } from '~/components/shared/Announcer';
 import { Toaster } from '~/components/shared/Toast';
 import { queryClient } from '~/misc/query';
 import { actions, initialState } from '~/store';
@@ -19,6 +20,7 @@ export function AppProviders({ children }: Props) {
         <QueryClientProvider client={queryClient}>
           <RadixTooltip.Provider delayDuration={0}>
             {children}
+            <Announcer />
             <Toaster />
           </RadixTooltip.Provider>
         </QueryClientProvider>

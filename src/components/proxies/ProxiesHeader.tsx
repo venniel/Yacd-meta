@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ChevronDown, ChevronUp, Sliders, Zap } from '~/components/shared/FeatherIcons';
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Sliders, Zap } from '~/components/shared/FeatherIcons';
 import {
   HeaderActions,
   HeaderButton,
@@ -15,7 +15,14 @@ import {
 import { Popover } from '~/components/shared/Popover';
 import { RotateIcon } from '~/components/shared/RotateIcon';
 import { TextFilter } from '~/components/shared/TextFilter';
+import {
+  getProxySortDirection,
+  getProxySortKey,
+  nextProxySortBy,
+} from '~/modules/proxies/utils';
+import { announce } from '~/store/announcer';
 import { proxyFilterText } from '~/store/proxies';
+import { useStoreActions } from '~/store/StateProvider';
 
 import s from './ProxiesHeader.module.scss';
 import Settings from './Settings';
@@ -63,6 +70,24 @@ export function ProxiesHeader({
   isUpdatingProviders,
 }: Props) {
   const { t } = useTranslation();
+  const {
+    app: { updateAppConfig },
+  } = useStoreActions();
+
+  const sortKey = getProxySortKey(appConfig.proxySortBy);
+  const sortDirection = getProxySortDirection(appConfig.proxySortBy);
+  const sortLabel =
+    sortKey === 'Latency'
+      ? `${t('sort_latency')}, ${sortDirection === 'Desc' ? t('sort_desc') : t('sort_asc')}`
+      : t('sort_latency');
+
+  // 把「按延迟排序」直接放到顶栏：每点一次在升序 / 降序之间切换，
+  // 改完立即播报新的排序方向
+  const onSortByLatency = () => {
+    const next = nextProxySortBy(appConfig.proxySortBy, 'Latency');
+    updateAppConfig('proxySortBy', next);
+    announce(`${t('sort_latency')}, ${getProxySortDirection(next) === 'Desc' ? t('sort_desc') : t('sort_asc')}`);
+  };
 
   return (
     <PageHeader>
@@ -105,9 +130,16 @@ export function ProxiesHeader({
         />
 
         <HeaderButton
+          icon={sortDirection === 'Desc' ? <ArrowDown size={16} /> : <ArrowUp size={16} />}
+          label={sortLabel}
+          title={sortDirection === 'Desc' ? t('order_latency_desc') : t('order_latency_asc')}
+          onClick={onSortByLatency}
+        />
+
+        <HeaderButton
           variant="primary"
           icon={<Zap size={16} />}
-          label={isTestingLatency ? t('testing') : t('test_all')}
+          label={t('test_all')}
           busy={isTestingLatency}
           disabled={isTestingLatency}
           onClick={onTestAll}

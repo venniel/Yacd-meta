@@ -8,11 +8,13 @@ type ProxyLatencyProps = {
   color: string;
   isTesting?: boolean;
   onClick?: () => void;
+  /** 读屏播报用的完整文案（含数值/单位/状态），视觉文字仍用 label */
+  ariaLabel?: string;
 };
 
 const ANIMATION_DURATION_MS = 450;
 
-export function ProxyLatency({ number, color, isTesting, onClick }: ProxyLatencyProps) {
+export function ProxyLatency({ number, color, isTesting, onClick, ariaLabel }: ProxyLatencyProps) {
   const hasNumber = typeof number === 'number';
   const textRef = React.useRef<HTMLSpanElement>(null);
   const prevNumberRef = React.useRef(number);
@@ -89,6 +91,7 @@ export function ProxyLatency({ number, color, isTesting, onClick }: ProxyLatency
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       title={label}
+      aria-label={ariaLabel}
     >
       <span ref={textRef}>{label}</span>
     </span>

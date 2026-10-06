@@ -161,6 +161,7 @@ export function HeaderButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
+      aria-busy={busy || undefined}
       title={title ?? label}
     >
       {icon}
