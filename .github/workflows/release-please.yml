@@ -1,9 +1,8 @@
 name: Release Please
 
+# 只允许手动触发，避免推送 master 时自动创建 release PR
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 permissions:
   contents: write

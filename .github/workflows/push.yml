@@ -1,6 +1,8 @@
 name: Deploy
 
-on: [push]
+# 只允许手动触发，避免每次推送都自动部署
+on:
+  workflow_dispatch:
 
 jobs:
   build:
