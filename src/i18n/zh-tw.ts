@@ -178,6 +178,7 @@ export const data = {
   announce_all_test_start: '開始全部測速',
   announce_all_test_done: '全部測速完成',
   announce_proxy_test: '{{name}} 延遲 {{ms}} 毫秒',
+  announce_group_collapsed: '已收合 {{name}}',
   group_fixed_tip: '該組已手動固定選擇，點擊測速可解除固定',
   search_rules_placeholder: '搜尋規則或提供商',
   rules_empty_title: '沒有符合的規則',

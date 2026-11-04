@@ -5,6 +5,7 @@ import { ProxiesHeader } from '~/components/proxies/ProxiesHeader';
 import { ProxyGroup } from '~/components/proxies/ProxyGroup';
 import { ProxyProvider } from '~/components/proxies/ProxyProvider';
 import {
+  useCardKeyboardNavigation,
   useCollapseAll,
   useDelayMapping,
   useProxiesPage,
@@ -61,9 +62,14 @@ export default function Proxies({ collapsibleIsOpen, apiConfig, appConfig }: Pro
     [visibleProviders],
   );
 
+  const cardPrefix: 'proxyGroup' | 'proxyProvider' =
+    activeTab === 'proxies' ? 'proxyGroup' : 'proxyProvider';
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  useCardKeyboardNavigation({ containerRef, prefix: cardPrefix });
+
   // 折叠是视图操作，只作用于搜索后可见的卡片
   const [toggleCollapseAll, allCollapsed] = useCollapseAll({
-    prefix: activeTab === 'proxies' ? 'proxyGroup' : 'proxyProvider',
+    prefix: cardPrefix,
     names: activeTab === 'proxies' ? visibleGroupNames : visibleProviderNames,
     collapsibleIsOpen,
   });
@@ -80,11 +86,17 @@ export default function Proxies({ collapsibleIsOpen, apiConfig, appConfig }: Pro
 
   const content =
     activeTab === 'proxies' ? (
-      <div className={containerClassName}>
+      <div className={containerClassName} ref={containerRef}>
         {proxyGroups.map((column, i) => (
           <div key={i} className={s0.column}>
             {column.map(({ name, i: originalIndex }) => (
-              <div className={s0.group} key={name} style={{ order: originalIndex }}>
+              <div
+                className={s0.group}
+                key={name}
+                style={{ order: originalIndex }}
+                data-proxy-card=""
+                data-proxy-card-name={name}
+              >
                 <ProxyGroup
                   name={name}
                   delay={delay}
@@ -100,11 +112,17 @@ export default function Proxies({ collapsibleIsOpen, apiConfig, appConfig }: Pro
         ))}
       </div>
     ) : (
-      <div className={containerClassName}>
+      <div className={containerClassName} ref={containerRef}>
         {providers.map((column, i) => (
           <div key={i} className={s0.column}>
             {column.map(({ item, i: originalIndex }) => (
-              <div className={s0.group} key={item.name} style={{ order: originalIndex }}>
+              <div
+                className={s0.group}
+                key={item.name}
+                style={{ order: originalIndex }}
+                data-proxy-card=""
+                data-proxy-card-name={item.name}
+              >
                 <ProxyProvider
                   name={item.name}
                   proxies={item.proxies}

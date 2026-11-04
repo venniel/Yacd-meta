@@ -81,6 +81,7 @@ export function ProxyCardHeader({
       aria-expanded={isOpen}
       aria-controls={panelId}
       aria-label={`${name}, ${t('proxy_group')}, ${type}`}
+      data-proxy-card-header=""
     >
       <span className={s.name} title={name}>
         {name}

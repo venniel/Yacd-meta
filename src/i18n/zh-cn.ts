@@ -185,6 +185,7 @@ export const data = {
   announce_all_test_start: '开始全部测速',
   announce_all_test_done: '全部测速完成',
   announce_proxy_test: '{{name}} 延迟 {{ms}} 毫秒',
+  announce_group_collapsed: '已收起 {{name}}',
   group_fixed_tip: '该组已手动固定选择，点击测速可解除固定',
   rule_entry_count: '{{count}} 条规则',
   rule_hit_tip: '已命中 {{count}} 次，最近一次{{time}}',

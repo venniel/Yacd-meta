@@ -208,9 +208,7 @@ export function useSwitchProxy(apiConfig: ClashAPIConfig, autoCloseOldConns: boo
       toast('error', i18n.t('switch_proxy_failed', { group: groupName, message: err.message }));
     },
     onSuccess: (_data, switchTo) => {
-      announce(
-        i18n.t('announce_switched', { group: switchTo.groupName, name: switchTo.itemName }),
-      );
+      announce(i18n.t('announce_switched', { group: switchTo.groupName, name: switchTo.itemName }));
       if (!autoCloseOldConns) return;
       const data = getData();
       if (data) closePrevConns(apiConfig, data.proxies, switchTo);
@@ -679,6 +677,94 @@ export function useProxiesPage({
     proxyGroups,
     providers,
   };
+}
+
+type CollapsiblePrefix = 'proxyGroup' | 'proxyProvider';
+
+/**
+ * 卡片标题的键盘导航：
+ * - Alt+↑ / Alt+↓ 在上一个 / 下一个卡片标题之间移动焦点，不受展开状态影响；
+ * - Esc 收起当前卡片，并把焦点送回它自己的标题。
+ *
+ * 卡片节点由 Proxies.tsx 的 data-proxy-card / data-proxy-card-name 和
+ * ProxyCard.tsx 的 data-proxy-card-header 标出。
+ */
+export function useCardKeyboardNavigation({
+  containerRef,
+  prefix,
+}: {
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  prefix: CollapsiblePrefix;
+}) {
+  const {
+    app: { updateCollapsibleIsOpen },
+  } = useStoreActions();
+  const filterSegments = useFilterSegments();
+
+  useEffect(() => {
+    const focusHeader = (card: HTMLElement) => {
+      card.querySelector<HTMLElement>('[data-proxy-card-header]')?.focus();
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (!active) return;
+      // 搜索框等可编辑区域、以及设置弹层里不抢键
+      if (active.isContentEditable) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName)) return;
+      if (active.closest('[role="dialog"]')) return;
+
+      const container = containerRef.current;
+      if (!container) return;
+      const cards = Array.from(container.querySelectorAll<HTMLElement>('[data-proxy-card]'));
+      if (cards.length === 0) return;
+
+      const card = active.closest<HTMLElement>('[data-proxy-card]');
+      const currentCard = card && container.contains(card) ? card : null;
+
+      if (
+        event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.shiftKey &&
+        (event.key === 'ArrowDown' || event.key === 'ArrowUp')
+      ) {
+        event.preventDefault();
+        const currentIndex = currentCard ? cards.indexOf(currentCard) : -1;
+        const nextIndex =
+          event.key === 'ArrowDown'
+            ? currentIndex < 0
+              ? 0
+              : Math.min(cards.length - 1, currentIndex + 1)
+            : currentIndex < 0
+              ? cards.length - 1
+              : Math.max(0, currentIndex - 1);
+        if (nextIndex !== currentIndex) focusHeader(cards[nextIndex]);
+        return;
+      }
+
+      if (event.key !== 'Escape' || !currentCard) return;
+      const header = currentCard.querySelector<HTMLElement>('[data-proxy-card-header]');
+      const name = currentCard.getAttribute('data-proxy-card-name');
+      if (!header || !name) return;
+      if (header.getAttribute('aria-expanded') !== 'true') return;
+
+      event.preventDefault();
+      // 搜索时卡片会被 useFilterAwareCollapse 强制展开，收起不会生效，只把焦点送回标题
+      const forcedOpen = filterSegments.length > 0 && !matchesFilter(name, filterSegments);
+      if (!forcedOpen) {
+        updateCollapsibleIsOpen(prefix, name, false);
+        announce(i18n.t('announce_group_collapsed', { name }));
+      }
+      // 面板收起后是 visibility:hidden，焦点必须离开；等 React 提交 aria-expanded
+      // 之后再聚焦，读屏播报的才是收起后的状态
+      requestAnimationFrame(() => header.focus());
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [containerRef, prefix, updateCollapsibleIsOpen, filterSegments]);
 }
 
 /**

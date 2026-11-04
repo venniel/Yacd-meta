@@ -185,6 +185,7 @@ export const data = {
   announce_all_test_start: 'Testing latency for all groups',
   announce_all_test_done: 'Latency test finished for all groups',
   announce_proxy_test: '{{name}} latency {{ms}} ms',
+  announce_group_collapsed: 'Collapsed {{name}}',
   group_fixed_tip: 'This group has a manually fixed selection; run a latency test to release it',
   rule_entry_count: '{{count}} entries',
   rule_hit_tip: 'Hit {{count}} times, last {{time}}',
