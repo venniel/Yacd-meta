@@ -1,28 +1,40 @@
 name: Deploy
 
-# 只允许手动触发，避免每次推送都自动部署
 on:
+  push:
+    branches:
+      - master
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-pages
+  # 部署到一半被取消可能留下旧的 gh-pages，排队执行更稳妥
+  cancel-in-progress: false
+
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Dashboard code
         uses: actions/checkout@v4
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: package.json
+
       - name: Install package and build
         run: |
           bun install --frozen-lockfile
           bun run build
-      - name: Deploy
-        uses: crazy-max/ghaction-github-pages@v2
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          target_branch: gh-pages
-          build_dir: public
-          fqdn: yacd.metacubex.one
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+          enable_jekyll: false
