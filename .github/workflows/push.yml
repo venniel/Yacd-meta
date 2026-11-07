@@ -31,6 +31,14 @@ jobs:
           bun install --frozen-lockfile
           bun run build
 
+      - name: Package build output
+        run: |
+          cd public
+          # 固定文件名，下载地址不随构建变化
+          zip -qr "$RUNNER_TEMP/yacd-dashboard.zip" . -x 'download/*'
+          mkdir -p download
+          mv "$RUNNER_TEMP/yacd-dashboard.zip" download/yacd-dashboard.zip
+
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -38,3 +46,5 @@ jobs:
           publish_dir: ./public
           publish_branch: gh-pages
           enable_jekyll: false
+          # 每次部署只保留一个提交，避免压缩包的历史版本撑大仓库
+          force_orphan: true
