@@ -1,3 +1,5 @@
+**下载编译产物**：<https://venniel.github.io/Yacd-meta/download/yacd-dashboard.zip>，解压后用任意静态服务器托管即可。
+
 > 本项目 fork 自 [MetaCubeX/Yacd-meta](https://github.com/MetaCubeX/Yacd-meta)，并在其基础上做了一些可访问性（屏幕阅读器）优化。
 
 > Yet Another [Clash](https://github.com/yaling888/clash) [Dashboard](https://github.com/yaling888/clash-dashboard)

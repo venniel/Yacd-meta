@@ -1,3 +1,5 @@
+**Download the build**: <https://venniel.github.io/Yacd-meta/download/yacd-dashboard.zip>. Unzip it and serve the files with any static web server.
+
 > Forked from [MetaCubeX/Yacd-meta](https://github.com/MetaCubeX/Yacd-meta), with some accessibility (screen reader) improvements on top.
 
 > Yet Another [Clash](https://github.com/yaling888/clash) [Dashboard](https://github.com/yaling888/clash-dashboard)
